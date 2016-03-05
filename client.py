@@ -1,50 +1,52 @@
 #!/usr/bin/env python
 
-#from geopy.geocoders import Nominatim
-#from geopy.exc import GeocoderTimedOut
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
 import serial
 import time 
 import asyncio
 import websockets
+import pynmea2
+from pynmea2 import ChecksumError
+from pynmea2 import ParseError
 
-ser =serial.Serial("/dev/tty.usbmodem1421", 9600, timeout=1)
+ser =serial.Serial("/dev/tty.usbserial", 9600, timeout=1)
 
 async def hello():
 	async with websockets.connect('ws://localhost:8765') as websocket:
 		while True:
 			data = await retrieve()
-			await websocket.send(data)
+			await websocket.send(str(data))
 			print("> {}".format(data))
 			greeting = await websocket.recv()
 			print("< {}".format(data))
 
 
 async def retrieve():
-		data = ser.readline()
-		return data #return the location from your example
+	data = ser.readline().decode()
+	data_to_be_sent = await concurrent(data)
+	return(data_to_be_sent)
 
-			#for line in data.split('\n') :
-				#if line.startswith( '$GPGGA' ) :           # latitude and longitude data find in GPGGA format                   
-						#lat, _, lon = line.strip().split(',')[2:5]     
-					#lat_toF = float( lat )
-					#lon_toF = float( lon )
-					#N_lat =str(lat_toF/100)
-					#N_lon =str(lon_toF/100)             # converting from float to string
-
-					#e=int (float(N_lat[3:])*100/60)     # for converting from degree to decimal
-					#LAT=N_lat[:3]+str(e)                # (latitude)
-					
-					#f=int (float(N_lon[3:])*100/60)     #    ||
-					#LON=N_lon[:3]+str(f)                # (longitude)
-
-					#coordinate = LAT + ', ' + LON       # cordinate in string format
-					#geolocator = Nominatim()
-					#try:
-						#location = geolocator.reverse(coordinate,timeout=10)
-						#print("LAT  "+ str(location.latitude) + "   LON  " +str( location.longitude))
-							#print(location.address)
-							#except GeocoderTimedOut as e:
-								#print("Error: geocode failed on input %s with message %s"%(my_address, e.msg))
+async def concurrent(data):	
+	#while True:
+	for line in data.split('\n'):
+		if line.startswith('$GPGGA'):
+			#if pynmea2.ChecksumError(line):
+			try:
+				msg = pynmea2.parse(line)
+				print(msg)
+				lat = msg.latitude
+				lng = msg.longitude
+				print(lat, lng)
+				coordinate = str(lat) + ', ' + str(lng)
+				print(coordinate)
+				geolocator = Nominatim()
+				location = geolocator.reverse(coordinate,timeout=10)
+				return(location.address)
+			except(ChecksumError, ParseError, KeyError) as e:
+				print(e)
+				
+			
 
 
 
