@@ -63,4 +63,6 @@ Give it a go. :smiley:
 
 ``` read.py ``` is given to test the GPS module only.
 
+Made with :heart: by [Chinmaya Das](https://github.com/chinmaydas96/) and [Tworit](https://github.com/tworitdash/)
+
 
