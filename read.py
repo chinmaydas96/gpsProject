@@ -4,7 +4,7 @@ import pynmea2
 from geopy.exc import GeocoderTimedOut
 from geopy.geocoders import Nominatim
 
-ser =serial.Serial("/dev/tty.usbserial", 9600, timeout=1)
+ser = serial.Serial("/dev/tty.usbserial", 9600, timeout=1)
 
 while True:
 	data = ser.readline().decode()
